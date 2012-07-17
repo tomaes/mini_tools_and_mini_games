@@ -3,18 +3,42 @@
     Mini-Tools and Mini-Games for the Command Line.
     by Thomas Gruetzmacher (tomaes.32x.de)
 
-    latest update: 07/2012
 
-    -> NBR_GAME : mini game (done)
-    -> MM_GAME  : a version of 'Mastermind' (done)
-    -> PWDGEN   : password / token generator (done)
-    -> MEDT     : minimal hex-editor / memory viewer / file dumper (done)
-    -> PICROSS  : picross clone (80 % done)
-    -> ANSIART  : minimal ANSI art (*.ans files) viewer ( < 50 % done)
-    -> EST_GAME : estimation game (done)
-    -> FMERGE   : file appending / filter / conversion tool (done)
+    While most of these mini programs are mere exercises, some are
+    a bit more clever and provide some level of entertainment and utility.
 
     Licence: http://creativecommons.org/licenses/by/3.0/deed.en
+
+
+
+    latest update: 07/2012
+
+   1 -> NBR_GAME : Three lines of code for this mini game that might amuse
+                   a first grader for ten seconds.
+
+   2 -> MM_GAME  : A version of the old board / deduction game 'Mastermind'
+                   but with numbers rather than colors. Read about it in
+                   an old C64 book.
+
+   3 -> PWDGEN   : A simple password / token generator that takes
+                   a formated string to spill out password suggestions.
+
+   4 -> MEDT     : A small Hex-editor / Memory viewer / File dumper tool
+                   Big enough to have its own help screen.
+
+   5 -> PICROSS  : Picross / Nonogram based game. Unfinished yet.
+
+   6 -> ANSIART  : Minimalist ANSI art (*.ans files) viewer. Very unfinished.
+
+   7 -> EST_GAME : Estimation / Observation test game.
+
+   8 -> FMERGE   : File stitching / Filter / Conversion tool
+                   Some esoteric features in this one.
+
+   9 -> PERM     : Permulation / Shuffle / Anagram tool
+
+  10 -> SBFED    : File Encoding / Decoding tool (untested)
+
 
 *******************************************************************************************/
 
@@ -30,7 +54,9 @@
 #define xxxMEDT
 #define xxxANSIART
 #define xxxEST_GAME
-#define FMERGE
+#define xxxFMERGE
+#define xxxPERM
+#define SBFED
 
 int main( int argc, char **argv )
 {
@@ -383,7 +409,7 @@ int main( int argc, char **argv )
 
     A version of Picross. (Work in progess)
 
-    A Logic / Picture Puzzle Game. This one has three levels.
+    A Logic / Picture Puzzle Game. Two Pics and one randomly generated field chosen at start.
     (http://en.wikipedia.org/wiki/Picross)
 
 *******************************************************************************************/
@@ -391,11 +417,11 @@ int main( int argc, char **argv )
 #ifdef PICROSS_GAME
 
  #define F_SIZE      10
- #define PIC_COUNT    3
+ #define PIC_COUNT    2
  #define BASE_CHAR 0x22
  #define CODE_CHAR   97
 
- int i,i2, x,y, cx,cy,cn, lv = -1;
+ int i,i2, x,y, cx,cy,cn;
 
  char f[F_SIZE*F_SIZE] = {0};
  char n[F_SIZE]        = {0};
@@ -439,8 +465,8 @@ int main( int argc, char **argv )
 
 /*----------------------------------------------------------------------------------*/
 
- /* out of pics? higher levels get randomly fields */
- if ( ++lv < PIC_COUNT )
+ /* select random pic, or a randomly generated pic */
+ if ( rand()%(PIC_COUNT+1) < PIC_COUNT )
  {
     int cell = 0;
     char set = 0;
@@ -456,7 +482,8 @@ int main( int argc, char **argv )
      */
 
      /* no decoding */
-     strcpy(f, pics[lv]);
+    for(i = 0; i < sizeof(f); i++)
+        f[i] = (pic[lv][i] == 'o') ? 1 : 0;
  }
  else
  {
@@ -467,55 +494,55 @@ int main( int argc, char **argv )
  }
 
 
-/*----------------------------------------------------------------------------------*/
+ /*----------------------------------------------------------------------------------*/
 
- /* scan field -> horizontal [TODO:vertical; outter: x, inner: y] */
- for(y = 0, cy = 0; y < F_SIZE; y++)
- {
-    /* start with no row results */
-    memset(n, 0, F_SIZE);
 
-    for( x = 0, cx = 0, cn = 0; x < F_SIZE; x++ )
-    {
-      /* count stones in a row */
-      if ( f[x + F_SIZE*y] ) cx++;
-      /* gap or corner stone? -> add results to n[] */
-      if (cx && (!f[x+F_SIZE*y] || x == F_SIZE-1) ) { n[cn++] = cx + '0'; cx = 0; }
-    }
-    /* nh = string together all horizontal results, line breaks after each line */
-    strcat(n, strlen(n) ? "": "none");
-    strcat(nh[y], n);
- }
+ int inpx = 0, inpy = 0, cont = 1, turns = 0;
 
-/*----------------------------------------------------------------------------------*/
-
- /* show field + right hints per line */
- for( i = 1; i <= sizeof(f); i++ )
- {
-    printf( "%c", f[i-1] + BASE_CHAR );
-    if ( !(i % F_SIZE) ) printf(" %s\n", nh[(i-1)/F_SIZE] );
- }
-
-/* bottom hints; test with HOR. hint numbers; TODO for vert. numbers */
- for( i = 0; i < F_SIZE; i++ )
- {
-    int validln = 0;
-    char row[F_SIZE+1] = {0};
-
-    for(i2 = 0; i2 < F_SIZE; i2++)
-        if ((row[i2] = nh[i2][i] ? nh[i2][i] : ' ') != ' ') validln = 1;
-
-    if (validln) printf("%s\n", row);
- }
-
-/*----------------------------------------------------------------------------------*/
-
- int inpx = 0, inpy = 0, cont = 1;
-
- /* main input loop; TODO: count turns. */
+ /* main input loop; */
  while( cont )
  {
-    printf("\nx,y? (0..9, 0..9, diff. coords to quit):");
+
+    /* scan field -> horizontal [TODO: vertical; outter: x, inner: y] */
+    for(y = 0, cy = 0; y < F_SIZE; y++)
+    {
+        /* start with no row results */
+        memset(n, 0, F_SIZE);
+
+        for( x = 0, cx = 0, cn = 0; x < F_SIZE; x++ )
+        {
+            /* count stones in a row */
+            if ( f[x + F_SIZE*y] ) cx++;
+            /* gap or corner stone? -> add results to n[] */
+            if (cx && (!f[x+F_SIZE*y] || x == F_SIZE-1) ) { n[cn++] = cx + '0'; cx = 0; }
+        }
+        /* nh = string together all horizontal results, line breaks after each line */
+        strcat(n, strlen(n) ? "": "none");
+        strcat(nh[y], n);
+    }
+
+    /* show field + right hints per line */
+    for( i = 1; i <= sizeof(f); i++ )
+    {
+        printf( "%c", f[i-1] + BASE_CHAR );
+        if ( !(i % F_SIZE) ) printf(" %s\n", nh[(i-1)/F_SIZE] );
+    }
+
+    /* bottom hints; test with HOR. hint numbers; TODO for vert. numbers */
+    for( i = 0; i < F_SIZE; i++ )
+    {
+        int validln = 0;
+        char row[F_SIZE+1] = {0};
+
+        for(i2 = 0; i2 < F_SIZE; i2++)
+            if ((row[i2] = nh[i2][i] ? nh[i2][i] : ' ') != ' ') validln = 1;
+
+        if (validln) printf("%s\n", row);
+    }
+
+    /*----------------------------------------------------------------------------------*/
+
+    printf("\nTurn: %d, Enter x,y (0..9, 0..9, diff. coords to quit):", ++turns);
     scanf("%i,%i", &inpx, &inpy);
 
     /* check for exit */
@@ -525,7 +552,19 @@ int main( int argc, char **argv )
     {
       printf("%d, %d -> %s", inpx, inpy, f[F_SIZE * inpy + inpx] ? "Hit!" : "Miss!" );
       f[F_SIZE*inpy + inpx] = 0;
+
+      /* no stones left to uncover? level complete */
+      char fclear = 1;
+      for( i = 0; i < F_SIZE && (fclear = !f[i]); i++ )
+
+      if(fclear)
+      {
+          printf("\Pic uncovered (in %d turns)! Congratulation", turns);
+          cont = 0;
+      }
+
     }
+
  }
 
  system("PAUSE");
@@ -580,7 +619,7 @@ int main( int argc, char **argv )
 
 /******************************************************************************************
 
-    (Text-)file appending / filter tool
+    (Text-)file appending / copy / filter tool
 
     - can add EOF text markers
     - filter out extended ASCII
@@ -743,6 +782,70 @@ int main( int argc, char **argv )
 
 
 #endif
+
+
+/******************************************************************************************
+
+    Fisher-Yates / Durstenfeld-Shuffle with presets
+    (useful for searching for anagrams or just trying to come up with project names ;)
+
+*******************************************************************************************/
+
+#ifdef PERM
+#define LOOPS 20
+
+ int i, j, r;
+ char inp[40], tmp;
+
+ srand(time(NULL));
+
+ printf("String to shuffle, [shortcuts: a-z, 0-9, dice]: ");
+ scanf("%s40", &inp);
+
+ if ( !strcmp(inp, "a-z" ) ) strcpy(inp, "abcdefghijklmnopqrstuvwxyz");
+ if ( !strcmp(inp, "0-9" ) ) strcpy(inp, "0123456789");
+ if ( !strcmp(inp, "dice") ) strcpy(inp, "123456");
+
+ for( j = LOOPS; j-- > 0; )
+ {
+     for( i = strlen(inp); i-- > 1; )
+     {
+        r = rand() % i;
+
+        tmp    = inp[i];
+        inp[i] = inp[r];
+        inp[r] = tmp;
+     }
+
+     printf("<%s>\n", inp);
+ }
+
+ system("PAUSE");
+
+#endif
+
+/******************************************************************************************
+
+ SBFED = Super Bad File Encoding & Decoding
+
+ (shortest and possibly worst mini file encrypter/decrypter possible. Don't use this
+  for your billion dollar trade secrets. ;)
+
+*******************************************************************************************/
+#ifdef SBFED
+
+ if (argc != 3) { puts("Error: 2 params for in/out files needed."); return -1; };
+ FILE sf = fopen( argv[1], "rb");
+ FILE df = fopen( argv[2], "wb");
+
+ char c;
+ while( (c = fgetc(sf)) != EOF ) fputc( (((c^-1) & 0xF0) >> 4) | (((c^-1) & 0x0F) << 4), df );
+
+ fclose(sf);
+ fclose(df);
+
+#endif
+
 
 
  return 0;
