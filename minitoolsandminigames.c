@@ -1,6 +1,7 @@
 /******************************************************************************************
 
     Mini-Tools and Mini-Games for the Command Line.
+    One page of code each or your money back.
     by Thomas Gruetzmacher (tomaes.32x.de)
 
 
@@ -13,8 +14,8 @@
 
     latest update: 07/2012
 
-   1 -> NBR_GAME : Three lines of code for this mini game that might amuse
-                   a first grader for ten seconds.
+   1 -> NBR_GAME : Three lines of obfuscated code for this mini game that
+                   might amuse a first grader for up to twenty seconds.
 
    2 -> MM_GAME  : A version of the old board / deduction game 'Mastermind'
                    but with numbers rather than colors. Read about it in
@@ -35,10 +36,13 @@
    8 -> FMERGE   : File stitching / Filter / Conversion tool
                    Some esoteric features in this one.
 
-   9 -> PERM     : Permulation / Shuffle / Anagram tool
+   9 -> PERM     : Permutation / Shuffle / Anagram tool
 
-  10 -> SBFED    : File Encoding / Decoding tool (untested)
+  10 -> SBFED    : File Encoding / Decoding tool
 
+  11 -> PRIME    : Prime number evaluator.
+
+  12 -> AJOKE    : "Gentlemen, The results speak for themselves."
 
 *******************************************************************************************/
 
@@ -56,7 +60,9 @@
 #define xxxEST_GAME
 #define xxxFMERGE
 #define xxxPERM
-#define SBFED
+#define xxxSBFED
+#define xxxPRIME
+#define AJOKE
 
 int main( int argc, char **argv )
 {
@@ -124,7 +130,7 @@ int main( int argc, char **argv )
 
 /******************************************************************************************
 
-  Minimal passwort / token generator, based on formated input string.
+  Minimal passwort / token generator, based on a formated input string.
   Example: 5000x0xxx
 
            first digit (in HEX): generate 5 results
@@ -407,9 +413,9 @@ int main( int argc, char **argv )
 
 /******************************************************************************************
 
-    A version of Picross. (Work in progess)
+    A version of Picross.
 
-    A Logic / Picture Puzzle Game. Two Pics and one randomly generated field chosen at start.
+    A Logic / Picture Puzzle Game. Unfinished.
     (http://en.wikipedia.org/wiki/Picross)
 
 *******************************************************************************************/
@@ -736,7 +742,7 @@ int main( int argc, char **argv )
         else if (flag_7bit)
         {
             while ( (c = fgetc(infile)) != EOF)
-               if (c >= 0 && c < 128) fputc(c, outfile); else fputc('-', outfile);
+               if (c >= 0) fputc(c, outfile); else fputc('-', outfile);
         }
         else if (flag_deconv)
         {
@@ -835,8 +841,9 @@ int main( int argc, char **argv )
 #ifdef SBFED
 
  if (argc != 3) { puts("Error: 2 params for in/out files needed."); return -1; };
- FILE sf = fopen( argv[1], "rb");
- FILE df = fopen( argv[2], "wb");
+
+ FILE *sf = fopen( argv[1], "rb");
+ FILE *df = fopen( argv[2], "wb");
 
  char c;
  while( (c = fgetc(sf)) != EOF ) fputc( (((c^-1) & 0xF0) >> 4) | (((c^-1) & 0x0F) << 4), df );
@@ -846,7 +853,48 @@ int main( int argc, char **argv )
 
 #endif
 
+/******************************************************************************************
 
+    Prime Number Evaluation. Short, simple & fast enough. AKS this is not, though.
+
+*******************************************************************************************/
+#ifdef PRIME
+
+ /* Beware: C99 stuff. ANSI/C89-only compilant compilers might argue this. */
+ long long int i, p, isprime = 1;
+
+ printf("\nNumber:");
+ scanf("%lld", &p);
+
+ if (p < 2 || !(p % 2)) isprime = 0;
+ else
+ for(i = 3; ( i <= sqrt(p)) && (isprime = p % i); i += 2);
+
+ printf("\nPrime: %s\n", isprime ? "Yes" : "No");
+
+#endif
+
+
+/******************************************************************************************
+
+    (ANTI-)JOKE GENERATOR. NOTHING IS SACRED!
+    "Why did the charming bulldozer run over the research facility?"
+    "Because the bulldozer could not love a(n) upset aroma therapist!"
+
+*******************************************************************************************/
+#ifdef AJOKE
+
+ srand(time(NULL));
+
+ char *a[] = { "chicken", "astronaut", "bulldozer", "aroma therapist", "pole dancer" };
+ char *b[] = { "cross", "run over", "walk over", "talk to", "love" };
+ char *c[] = { "street", "bridge", "chicken farm", "rumba instructor meeting hall", "research facility" };
+ char *d[] = { "bossy", "charming", "single", "blushing", "upset" };
+
+ printf("\nWhy did the %s %s %s the %s?", d[rand()%5], a[rand()%5], b[rand()%5], c[rand()%5] );
+ printf("\nBecause the %s could not %s a(n) %s %s!\n", a[rand()%5], b[rand()%5], d[rand()%5], a[rand()%5] );
+
+#endif
 
  return 0;
 
