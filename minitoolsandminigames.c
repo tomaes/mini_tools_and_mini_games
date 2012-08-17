@@ -866,6 +866,8 @@ int main( int argc, char **argv )
  printf("\nNumber:");
  scanf("%lld", &p);
 
+ if (p == 2) isprime = 1;
+ else
  if (p < 2 || !(p % 2)) isprime = 0;
  else
  for(i = 3; ( i <= sqrt(p)) && (isprime = p % i); i += 2);

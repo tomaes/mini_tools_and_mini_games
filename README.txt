@@ -2,7 +2,7 @@
     Mini-Tools and Mini-Games for the Command Line.
     One page of code each or your money back.
 
-    by Thomas Gruetzmacher (tomaes.32x.de)
+    by Thomas Gruetzmacher (http://tomaes.32x.de)
 
 
     While most of these mini programs are mere exercises, some are
